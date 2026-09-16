@@ -31,14 +31,18 @@ jobs:
       - name: Fetch AOSP Clang r383902
         run: |
           mkdir -p toolchain/llvm-arm-toolchain-ship/10.0
-          curl -LSs "https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/master/clang-r383902.tar.gz" \
-            | tar -xz -C toolchain/llvm-arm-toolchain-ship/10.0
+          curl -LSs "https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/fcce3268397ce68ee36f9c52f3a55630897328b3/clang-r383902.tar.gz" \
+            -o /tmp/clang.tar.gz
+          file /tmp/clang.tar.gz | grep -qi gzip || { echo "Download did not return a gzip archive:"; cat /tmp/clang.tar.gz; exit 1; }
+          tar -xzf /tmp/clang.tar.gz -C toolchain/llvm-arm-toolchain-ship/10.0
 
       - name: Fetch AOSP GCC aarch64-4.9
         run: |
           mkdir -p toolchain/gcc/linux-x86/aarch64/aarch64-linux-android-4.9
-          curl -LSs "https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/+archive/refs/heads/master/aarch64-linux-android-4.9.tar.gz" \
-            | tar -xz -C toolchain/gcc/linux-x86/aarch64/aarch64-linux-android-4.9
+          curl -LSs "https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/+archive/0d76fe448c221c8f5153c6e8d0073dae351ed157.tar.gz" \
+            -o /tmp/gcc.tar.gz
+          file /tmp/gcc.tar.gz | grep -qi gzip || { echo "Download did not return a gzip archive:"; cat /tmp/gcc.tar.gz; exit 1; }
+          tar -xzf /tmp/gcc.tar.gz -C toolchain/gcc/linux-x86/aarch64/aarch64-linux-android-4.9
 
       - name: Build kernel
         run: |
