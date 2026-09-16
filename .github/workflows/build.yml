@@ -46,6 +46,84 @@ jobs:
           file /tmp/gcc.tar.gz | grep -qi gzip || { echo "Download did not return a gzip archive:"; cat /tmp/gcc.tar.gz; exit 1; }
           tar -xzf /tmp/gcc.tar.gz -C toolchain/gcc/linux-x86/aarch64/aarch64-linux-android-4.9
 
+      - name: Patch gcc-wrapper.py for Python 3 compatibility
+        run: python3 patch_gcc_wrapper.py
+
+      - name: Build kernel
+        run: |
+          chmod +x build_kernel.sh
+          ./build_kernel.sh
+
+      - name: Verify CONFIG_KSU built in (not as module)
+        run: |
+          if grep -q "^CONFIG_KSU=y" out/.config; then
+            echo "CONFIG_KSU=y confirmed built-in."
+          else
+            echo "CONFIG_KSU is not set to y in the final .config - aborting."
+            grep "CONFIG_KSU" out/.config || echo "CONFIG_KSU not present at all in .config"
+            exit 1
+          fi
+
+      - name: Package AnyKernel3
+        run: |
+          git clone --depth 1 https://github.com/osm0sis/AnyKernel3.git AK3
+          rm -rf AK3/.git
+          cp out/arch/arm64/boot/Image AK3/Image
+          cp anykernel.sh AK3/anykernel.sh
+          cd AK3 && zip -r9 ../A715F-KSU-Next-$(date +%Y%m%d).zip . -x ".git/*"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: A715F-KSU-Next-kernel
+          path: A715F-KSU-Next-*.zipname: Build A715F Kernel + KernelSU-Next
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ ksun ]
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout kernel source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Install build deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bc bison flex libssl-dev libncurses-dev \
+            python3 python-is-python3 device-tree-compiler zip
+
+      - name: Integrate KernelSU-Next
+        run: |
+          curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/dev/kernel/setup.sh" | bash -
+          # sanity check: symlink + Kconfig/Makefile hooks must exist before we build
+          test -L drivers/kernelsu
+          grep -q "CONFIG_KSU" drivers/Makefile
+          grep -q 'source "drivers/kernelsu/Kconfig"' drivers/Kconfig
+
+      - name: Fetch AOSP Clang r383902
+        run: |
+          mkdir -p toolchain/llvm-arm-toolchain-ship/10.0
+          curl -fSL --retry 6 --retry-delay 10 --retry-all-errors \
+            "https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/fcce3268397ce68ee36f9c52f3a55630897328b3/clang-r383902.tar.gz" \
+            -o /tmp/clang.tar.gz
+          file /tmp/clang.tar.gz | grep -qi gzip || { echo "Download did not return a gzip archive:"; cat /tmp/clang.tar.gz; exit 1; }
+          tar -xzf /tmp/clang.tar.gz -C toolchain/llvm-arm-toolchain-ship/10.0
+
+      - name: Fetch AOSP GCC aarch64-4.9
+        run: |
+          mkdir -p toolchain/gcc/linux-x86/aarch64/aarch64-linux-android-4.9
+          curl -fSL --retry 6 --retry-delay 10 --retry-all-errors \
+            "https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/+archive/0d76fe448c221c8f5153c6e8d0073dae351ed157.tar.gz" \
+            -o /tmp/gcc.tar.gz
+          file /tmp/gcc.tar.gz | grep -qi gzip || { echo "Download did not return a gzip archive:"; cat /tmp/gcc.tar.gz; exit 1; }
+          tar -xzf /tmp/gcc.tar.gz -C toolchain/gcc/linux-x86/aarch64/aarch64-linux-android-4.9
+
       - name: Build kernel
         run: |
           chmod +x build_kernel.sh
