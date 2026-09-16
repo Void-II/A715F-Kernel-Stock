@@ -1,0 +1,65 @@
+name: Build A715F Kernel with WireGuard
+on:
+  workflow_dispatch:
+
+jobs:
+  build-kernel:
+    name: Build Kernel
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+
+    steps:
+      # Step 1: Checkout the kernel source (test branch)
+      - name: Checkout Kernel Source
+        uses: actions/checkout@v4
+        with:
+          repository: Void-II/A715F-Kernel-Stock
+          ref: test
+          path: kernel_source
+
+      # Step 2: Verify the defconfig edits are present
+      - name: Verify Defconfig Edits
+        run: |
+          DEFCONFIG="kernel_source/arch/arm64/configs/a71_eur_open_defconfig"
+
+          if [ ! -f "$DEFCONFIG" ]; then
+            echo "ERROR: Defconfig not found at $DEFCONFIG"
+            exit 1
+          fi
+
+          echo "=== Checking for CONFIG_LOCALVERSION ==="
+          grep "CONFIG_LOCALVERSION=" "$DEFCONFIG" || echo "NOT FOUND!"
+
+          echo ""
+          echo "=== Checking for CONFIG_WIREGUARD ==="
+          grep "CONFIG_WIREGUARD" "$DEFCONFIG" || echo "NOT FOUND!"
+
+          echo ""
+          echo "=== Sanity check: both lines must exist ==="
+          if ! grep -q 'CONFIG_WIREGUARD=y' "$DEFCONFIG"; then
+            echo "ERROR: CONFIG_WIREGUARD=y is missing from defconfig. Aborting."
+            exit 1
+          fi
+          if ! grep -q 'CONFIG_LOCALVERSION=' "$DEFCONFIG"; then
+            echo "ERROR: CONFIG_LOCALVERSION is missing from defconfig. Aborting."
+            exit 1
+          fi
+          echo "Both edits confirmed present. Proceeding to build."
+
+      # Step 3: Build the kernel
+      - name: Build Kernel
+        uses: dabao1955/kernel_build_action@main
+        with:
+          kernel-url: ./kernel_source/
+          config: a71_eur_open_defconfig
+          arch: arm64
+          aosp-gcc: true
+          aosp-clang: true
+          android-version: 12
+          aosp-clang-version: r383902
+          disable-lto: true
+          anykernel3: true
+          ksu: false
+          release: true
+          access-token: ${{ secrets.GITHUB_TOKEN }}
