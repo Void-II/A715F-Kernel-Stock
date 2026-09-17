@@ -44,7 +44,7 @@ jobs:
         run: |
           mkdir -p toolchain/gcc/linux-x86/aarch64/aarch64-linux-android-4.9
           curl -fSL --retry 6 --retry-delay 10 --retry-all-errors \
-            "https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/+archive/0d76fe448c221c8f5153c6e8d0073dae351ed157.tar.gz" \
+            "https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/+archive/refs/tags/android-12.1.0_r27.tar.gz" \
             -o /tmp/gcc.tar.gz
           file /tmp/gcc.tar.gz | grep -qi gzip || { echo "Download did not return a gzip archive:"; cat /tmp/gcc.tar.gz; exit 1; }
           tar -xzf /tmp/gcc.tar.gz -C toolchain/gcc/linux-x86/aarch64/aarch64-linux-android-4.9
