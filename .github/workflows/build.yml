@@ -20,13 +20,16 @@ jobs:
           sudo apt-get install -y bc bison flex libssl-dev libncurses-dev \
             python3 python-is-python3 device-tree-compiler zip
 
-      - name: Integrate KernelSU-Next
+      - name: Integrate KernelSU-Next (legacy/manual-hook branch)
         run: |
-          curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/dev/kernel/setup.sh" | bash -
+          curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/dev/kernel/setup.sh" | bash -s v3.2.0-legacy
           # sanity check: symlink + Kconfig/Makefile hooks must exist before we build
           test -L drivers/kernelsu
           grep -q "CONFIG_KSU" drivers/Makefile
           grep -q 'source "drivers/kernelsu/Kconfig"' drivers/Kconfig
+
+      - name: Apply manual hook patches for non-GKI kernel
+        run: python3 patch_kernel_hooks.py
 
       - name: Fetch AOSP Clang r383902
         run: |
