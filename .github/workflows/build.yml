@@ -42,12 +42,10 @@ jobs:
 
       - name: Fetch AOSP GCC aarch64-4.9
         run: |
-          mkdir -p toolchain/gcc/linux-x86/aarch64/aarch64-linux-android-4.9
-          curl -fSL --retry 6 --retry-delay 10 --retry-all-errors \
-            "https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/+archive/refs/tags/android-12.1.0_r27.tar.gz" \
-            -o /tmp/gcc.tar.gz
-          file /tmp/gcc.tar.gz | grep -qi gzip || { echo "Download did not return a gzip archive:"; cat /tmp/gcc.tar.gz; exit 1; }
-          tar -xzf /tmp/gcc.tar.gz -C toolchain/gcc/linux-x86/aarch64/aarch64-linux-android-4.9
+          mkdir -p toolchain/gcc/linux-x86/aarch64
+          git clone --depth 1 -b google https://github.com/GrowtopiaJaw/aarch64-linux-android-4.9.git \
+            toolchain/gcc/linux-x86/aarch64/aarch64-linux-android-4.9
+          test -x toolchain/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android-gcc
 
       - name: Patch gcc-wrapper.py for Python 3 compatibility
         run: python3 patch_gcc_wrapper.py
