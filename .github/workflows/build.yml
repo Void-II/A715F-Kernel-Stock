@@ -40,13 +40,13 @@ jobs:
           file /tmp/clang.tar.gz | grep -qi gzip || { echo "Download did not return a gzip archive:"; cat /tmp/clang.tar.gz; exit 1; }
           tar -xzf /tmp/clang.tar.gz -C toolchain/llvm-arm-toolchain-ship/10.0
 
-      - name: Fetch AOSP GCC aarch64-4.9
+      - name: Fetch AOSP GCC aarch64-4.9 (binutils only - REAL_CC is clang, GCC provides as/ld/ar via CROSS_COMPILE)
         run: |
           mkdir -p toolchain/gcc/linux-x86/aarch64
-          git clone --depth 1 \
-            https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 \
+          git clone --depth 1 -b google https://github.com/GrowtopiaJaw/aarch64-linux-android-4.9.git \
             toolchain/gcc/linux-x86/aarch64/aarch64-linux-android-4.9
-          test -x toolchain/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android-gcc
+          test -x toolchain/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android-as
+          test -x toolchain/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android-ld.bfd
 
       - name: Patch gcc-wrapper.py for Python 3 compatibility
         run: python3 patch_gcc_wrapper.py
