@@ -43,7 +43,8 @@ jobs:
       - name: Fetch AOSP GCC aarch64-4.9
         run: |
           mkdir -p toolchain/gcc/linux-x86/aarch64
-          git clone --depth 1 -b google https://github.com/GrowtopiaJaw/aarch64-linux-android-4.9.git \
+          git clone --depth 1 \
+            https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 \
             toolchain/gcc/linux-x86/aarch64/aarch64-linux-android-4.9
           test -x toolchain/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android-gcc
 
