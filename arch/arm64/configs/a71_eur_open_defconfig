@@ -6641,6 +6641,38 @@ CONFIG_SBITMAP=y
 # CONFIG_STRING_SELFTEST is not set
 
 
-CONFIG_SYSVIPC=y
+# PID namespace
 CONFIG_PID_NS=y
+
+# IPC namespace (needs SysV IPC backend)
+CONFIG_SYSVIPC=y
 CONFIG_IPC_NS=y
+
+# devtmpfs support (required for hardware access mode)
+CONFIG_DEVTMPFS=y
+
+# OverlayFS support (required for --volatile mode)
+CONFIG_OVERLAY_FS=y
+
+# Veth pair support (required for --net=nat, no fallback exists)
+CONFIG_VETH=y
+
+# User namespace support
+CONFIG_USER_NS=y
+
+# MGLRU
+CONFIG_LRU_GEN=y
+CONFIG_LRU_GEN_ENABLED=y
+
+# LZ4
+CONFIG_CRYPTO_LZ4=y
+CONFIG_ZRAM=y
+CONFIG_ZRAM_LZ4_COMPRESS=y
+
+# TCP BBR
+CONFIG_TCP_CONG_BBR=y
+CONFIG_DEFAULT_BBR=y
+
+# ext4 tune
+CONFIG_EXT4_FS=y
+CONFIG_EXT4_USE_FOR_EXT2=y
